@@ -13,8 +13,8 @@ import { CastleModule } from './castle/castle.module';
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'local.db',
-      entities: ['./entities/*.entity.ts'],
-      synchronize: false,
+      autoLoadEntities: true,
+      synchronize: true,
     }),
     ServeStaticModule.forRoot({
       rootPath: resolve(__dirname, '../../static'),

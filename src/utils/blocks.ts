@@ -466,7 +466,6 @@ export const saveAsBlock = async (file: ReadStream): Promise<BlockEntity | null>
     await saveAsFile(saveDir, filename, buf);
   }
   return {
-    id: 0,
     name: domain,
     version,
     link: `http://localhost:3000/${saveDir}/${domain}/${version}/index.js`,
