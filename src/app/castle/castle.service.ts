@@ -14,8 +14,20 @@ export class CastleService {
     private readonly blockEntity: Repository<BlockEntity>,
   ) {}
 
+  queryCastle(name: string) {
+    return this.castleRepository.findOne({ where: { name } });
+  }
+
   async saveCastle(castle: CastleEntity) {
     return this.castleRepository.save(castle);
+  }
+
+  queryBlocks(params: { org: string; name: string }) {
+    const { org, name } = params;
+    if (name) {
+      return this.blockEntity.find({ where: { name } });
+    }
+    return this.blockEntity.find({ where: { org } });
   }
 
   async saveBlock(block: BlockEntity) {

@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs';
-import { Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -13,9 +13,10 @@ export class CastleController {
     private castleService: CastleService,
   ) {}
 
-  @Get(':name')
-  queryCastle(@Param('name') name: string) {
-    return name;
+  @Get()
+  async queryBlocksInCastle(@Query('org') org: string, @Query('name') name: string) {
+    const blocks = await this.castleService.queryBlocks({ org, name });
+    return { code: 0, data: blocks };
   }
 
   @Post()

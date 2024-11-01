@@ -6,6 +6,9 @@ export class BlockEntity {
   id?: number;
 
   @Column()
+  org: string;
+
+  @Column()
   name: string;
 
   @Column()
@@ -15,8 +18,11 @@ export class BlockEntity {
   link: string;
 
   @Column()
-  description: string;
+  spec: string;
 
   @Column()
-  author: string;
+  requireRef: string;
+
+  @Column()
+  dependencies: string;
 }

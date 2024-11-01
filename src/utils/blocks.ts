@@ -217,7 +217,7 @@ export interface PiletVersions {
 export type PiletDb = Record<string, PiletVersions>;
 
 const packageRoot = 'package/';
-const distRoot = 'dist/';
+const distRoot = 'dist';
 const checkV1 = /^\/\/\s*@pilet\s+v:1\s*\(([A-Za-z0-9\_\:\-]+)\)/;
 const checkV2 = /^\/\/\s*@pilet\s+v:2\s*\(([A-Za-z0-9\_\:\-]+)\s*,\s*(.*)\)/;
 const checkVx = /^\/\/\s*@pilet\s+v:x\s*(?:\((.*)\))?/;
@@ -427,7 +427,7 @@ export function getPilet(pilet: PiletMetadata) {
 
 const getPkgDomain = (pkg: PackageData) => {
   const { name = '' } = pkg;
-  return name.replace('@', '');
+  return name.split('/');
 };
 
 const getPkgVersion = (pkg: PackageData) => {
@@ -436,13 +436,15 @@ const getPkgVersion = (pkg: PackageData) => {
 };
 
 const queryFilename = (unzipFilename: string) => {
-  if (unzipFilename.includes('package.json')) {
-    return unzipFilename.replace(packageRoot, '');
-  }
-  return unzipFilename.replace(`${packageRoot}${distRoot}`, '');
+  return unzipFilename.replace(packageRoot, '');
 };
 
 const saveAsFile = async (dir: string, filename: string, buf: Buffer) => {
+  if (filename.includes(distRoot)) {
+    const [subdir, expected] = filename.split('/');
+    dir = `${dir}/${subdir}`;
+    filename = expected;
+  }
   const hasExist = existsSync(dir);
   if (!hasExist) {
     await mkdir(dir, { recursive: true });
@@ -450,26 +452,49 @@ const saveAsFile = async (dir: string, filename: string, buf: Buffer) => {
   await writeFile(`${dir}/${filename}`, buf);
 };
 
+const extractMain = (mainContent: string) => {
+  if (checkV1.test(mainContent)) {
+    const [, requireRef] = checkV1.exec(mainContent);
+    return { spec: 'v1', requireRef };
+  } else if (checkV2.test(mainContent)) {
+    const [, requireRef] = checkV2.exec(mainContent);
+    return { spec: 'v2', requireRef };
+  } else if (checkVx.test(mainContent)) {
+    return { spec: 'vx', requireRef: '' };
+  }
+  return { spec: 'v0', requireRef: '' };
+};
+
 export const saveAsBlock = async (file: ReadStream): Promise<BlockEntity | null> => {
   const unzipFiles = await untar(file);
   const pkg = getPackageJson(unzipFiles);
-  const domain = getPkgDomain(pkg);
+  const [org, name] = getPkgDomain(pkg);
   const version = getPkgVersion(pkg);
-  const saveDir = ['static', domain, version].join('/');
+  const savedPaths = ['static', org, name, version].filter((v) => Boolean(v));
+  const saveDir = savedPaths.join('/');
   const hasSavedSameDir = existsSync(saveDir);
   if (hasSavedSameDir) {
     return null;
   }
+  let mainFileKey = '';
+  let mainFile = '';
   for (const key in unzipFiles) {
     const filename = queryFilename(key);
     const buf = unzipFiles[key];
     await saveAsFile(saveDir, filename, buf);
+    if (filename === pkg.main || /^index\..+(\.js)$/.test(filename)) {
+      mainFileKey = filename;
+      mainFile = buf.toString();
+    }
   }
+  const { spec, requireRef } = extractMain(mainFile.toString());
   return {
-    name: domain,
+    org,
+    name: name ? `${org}/${name}` : org,
     version,
-    link: `http://localhost:3000/${saveDir}/${domain}/${version}/index.js`,
-    description: '',
-    author: '',
+    spec,
+    link: `http://localhost:3000/${savedPaths.slice(1).join('/')}/${mainFileKey}`,
+    requireRef,
+    dependencies: '{}',
   };
 };
