@@ -1,10 +1,12 @@
+import { resolve } from 'node:path';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import * as cookieParser from 'cookie-parser';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CastleModule } from './castle/castle.module';
-import * as cookieParser from 'cookie-parser';
 
 @Module({
   imports: [
@@ -13,6 +15,11 @@ import * as cookieParser from 'cookie-parser';
       database: 'local.db',
       entities: ['./entities/*.entity.ts'],
       synchronize: false,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: resolve(__dirname, '../../static'),
+      serveRoot: '/',
+      exclude: ['/api/(.*)'],
     }),
     EventEmitterModule.forRoot(),
     CastleModule,

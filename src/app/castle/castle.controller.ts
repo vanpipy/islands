@@ -1,11 +1,17 @@
+import { createReadStream } from 'node:fs';
 import { Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { saveAsBlock } from 'src/utils/blocks';
+import { CastleService } from './castle.service';
 
-@Controller('castle')
+@Controller('/api/castle')
 export class CastleController {
-  constructor(private eventEmitter: EventEmitter2) {}
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private castleService: CastleService,
+  ) {}
 
   @Get(':name')
   queryCastle(@Param('name') name: string) {
@@ -17,7 +23,7 @@ export class CastleController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, callback) => {
+        filename: (_req, file, callback) => {
           callback(null, `${Date.now()}-${file.originalname}`);
         },
       }),
@@ -29,8 +35,12 @@ export class CastleController {
   }
 
   @OnEvent('file.parse')
-  onParseFile(payload: { file: Express.Multer.File }) {
+  async onParseFile(payload: { file: Express.Multer.File }) {
     const { file } = payload;
-    console.log(file);
+    const streamFile = createReadStream(file.path);
+    const savedEntity = await saveAsBlock(streamFile);
+    if (savedEntity) {
+      this.castleService.saveBlock(savedEntity);
+    }
   }
 }
