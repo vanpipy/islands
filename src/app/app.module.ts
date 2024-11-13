@@ -6,6 +6,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import * as cookieParser from 'cookie-parser';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { BlocksModule } from './blocks/blocks.module';
 import { CastleModule } from './castle/castle.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { CastleModule } from './castle/castle.module';
       exclude: ['/api/(.*)'],
     }),
     EventEmitterModule.forRoot(),
+    BlocksModule,
     CastleModule,
   ],
   controllers: [AppController],
