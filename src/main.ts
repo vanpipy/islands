@@ -7,8 +7,8 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Islands')
     .setDescription('The Islands API description')
-    .setVersion('1.0')
-    .addTag('islands')
+    .setVersion('v1.0.0')
+    .setContact('vanpipy', 'https://github.com/vanpipy', 'vanpipy@gmail.com')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

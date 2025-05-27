@@ -5,7 +5,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { getPackageJson, getPkgDomain, saveAsBlock, untar } from './blocks.utils';
 import { BlocksService } from './blocks.service';
-import { createResponse } from '../../utils/response';
+import { createResponse, WebResponse } from '../../utils/response';
+import { BlocksQuery } from './blocks.dto';
+import { BlockEntity } from '../entities/block.entity';
 
 @Controller('/api/blocks')
 export class BlocksController {
@@ -15,7 +17,8 @@ export class BlocksController {
   ) {}
 
   @Get()
-  async queryBlocks(@Query('name') name: string, @Query('version') version: string) {
+  async queryBlocks(@Query() blocksQuery: BlocksQuery): Promise<WebResponse<BlockEntity[]>> {
+    const { name, version } = blocksQuery;
     const condition = { name, version };
     if (!version) {
       delete condition.version;
