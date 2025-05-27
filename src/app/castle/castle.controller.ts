@@ -1,7 +1,9 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { CastleService } from './castle.service';
 import { BlocksService } from '../blocks/blocks.service';
-import { createResponse } from '../../utils/response';
+import { createResponse } from '@/utils/response';
+import { CastleData, CastleQuery } from '@/dtos/castle.dto';
+import { ApiWebBaseResponse, ApiWebObjectResponse, WebResponse } from '@/dtos/response.dto';
 
 @Controller('/api/castle')
 export class CastleController {
@@ -11,7 +13,9 @@ export class CastleController {
   ) {}
 
   @Get(':name')
-  async queryCastle(@Param('name') name: string) {
+  @ApiWebObjectResponse(CastleData)
+  async queryCastle(@Param() castleQuery: CastleQuery): Promise<WebResponse<CastleData>> {
+    const { name } = castleQuery || {};
     const castle = await this.castleService.queryCastle(name);
     try {
       const deps = JSON.parse(castle.dependencies);
@@ -28,23 +32,26 @@ export class CastleController {
   }
 
   @Post(':name')
+  @ApiWebBaseResponse('string')
   async createCastle(
-    @Param('name') name: string,
+    @Param() castleQuery: CastleQuery,
     @Body()
     castle: {
       link?: string;
       dependencies: Record<string, string>;
     },
   ) {
+    const { name } = castleQuery || {};
     const { link = '', dependencies } = castle;
     const strDeps = JSON.stringify(dependencies);
     await this.castleService.saveCastle({ name, link, dependencies: strDeps });
-    return createResponse({ data: 'ok' });
+    return createResponse({ message: 'ok', data: null });
   }
 
   @Put(':name')
+  @ApiWebBaseResponse('string')
   async updateCastle(
-    @Param('name') name: string,
+    @Param() castleQuery: CastleQuery,
     @Body()
     castle: {
       id: string;
@@ -52,23 +59,20 @@ export class CastleController {
       dependencies: Record<string, string>;
     },
   ) {
+    const { name } = castleQuery || {};
     const { id, link = '', dependencies } = castle;
-    try {
-      const strDeps = JSON.stringify(dependencies);
-      await this.castleService.updateCastle({ id, name, link, dependencies: strDeps });
-      return createResponse({ data: 'ok' });
-    } catch (err) {
-      console.error(err);
-      return createResponse({ data: null });
-    }
+    const strDeps = JSON.stringify(dependencies);
+    await this.castleService.updateCastle({ id, name, link, dependencies: strDeps });
+    return createResponse({ message: 'ok', data: null });
   }
 
   @Delete(':name')
+  @ApiWebBaseResponse('string')
   async deleteCastle(@Param('name') name: string) {
     const result = await this.castleService.queryCastle(name);
     if (result) {
       await this.castleService.deleteCastle(result);
-      return createResponse({ data: 'ok' });
+      return createResponse({ message: 'ok', data: null });
     }
     throw new NotFoundException(`Cannot find castle ${name}`);
   }

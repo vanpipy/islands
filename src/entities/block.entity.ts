@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class BlockEntity {
   @PrimaryGeneratedColumn('uuid')
-  id?: string;
+  id: string;
 
   @Column()
   org: string;

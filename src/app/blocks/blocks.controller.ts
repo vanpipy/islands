@@ -3,9 +3,12 @@ import { Controller, Delete, Get, Post, Query, UploadedFile, UseInterceptors } f
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { createResponse } from '@/utils/response';
+import { ApiWebArrayResponse, WebResponse } from '@/dtos/response.dto';
+import { BlockData, BlocksQuery, FileUploadDto } from '@/dtos/blocks.dto';
 import { getPackageJson, getPkgDomain, saveAsBlock, untar } from './blocks.utils';
 import { BlocksService } from './blocks.service';
-import { createResponse } from '../../utils/response';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @Controller('/api/blocks')
 export class BlocksController {
@@ -15,7 +18,9 @@ export class BlocksController {
   ) {}
 
   @Get()
-  async queryBlocks(@Query('name') name: string, @Query('version') version: string) {
+  @ApiWebArrayResponse(BlockData)
+  async queryBlocks(@Query() blocksQuery: BlocksQuery): Promise<WebResponse<BlockData[]>> {
+    const { name, version } = blocksQuery;
     const condition = { name, version };
     if (!version) {
       delete condition.version;
@@ -27,7 +32,7 @@ export class BlocksController {
   @Delete()
   async deleteBlock(@Query('name') name: string) {
     await this.blocksService.deleteBlock(name);
-    return createResponse({ data: null, message: `All version of the block ${name} has been deleted` });
+    return createResponse({ message: `All version of the block ${name} has been deleted`, data: null });
   }
 
   @Post()
@@ -41,6 +46,8 @@ export class BlocksController {
       }),
     }),
   )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: FileUploadDto })
   createBlock(@UploadedFile() file: Express.Multer.File) {
     this.eventEmitter.emit('file.parse', { file });
     return createResponse({ message: `${file.filename}`, data: null });

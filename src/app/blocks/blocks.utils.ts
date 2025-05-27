@@ -3,7 +3,8 @@ import { createGunzip } from 'zlib';
 import { EventEmitter } from 'events';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { BlockEntity } from 'src/app/entities/block.entity';
+import { v4 as uuidv4 } from 'uuid';
+import { BlockEntity } from '@/entities/block.entity';
 
 export interface PiletMetadataV0 {
   /**
@@ -348,6 +349,7 @@ export const saveAsBlock = async (unzipFiles: PackageFiles): Promise<BlockEntity
   }
   const { spec, requireRef } = extractMain(mainFile.toString());
   return {
+    id: uuidv4(),
     org,
     name: name ? `${org}/${name}` : name,
     version,
