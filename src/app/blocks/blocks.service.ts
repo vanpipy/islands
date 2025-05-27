@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BlockEntity } from '../entities/block.entity';
+import { BlockEntity } from '@/entities/block.entity';
 
 type Param = Partial<{
   org: string;

@@ -1,4 +1,6 @@
-export const createResponse = <T>(params: { statusCode?: number; message?: string; data: T }) => {
-  const { statusCode = 0, message = null, data } = params;
-  return { statusCode, message, data };
+import { WebResponse } from '@/dtos/response.dto';
+
+export const createResponse = <T>(params: WebResponse<T>) => {
+  const { status = 0, message = null, data } = params;
+  return { status, message, data };
 };

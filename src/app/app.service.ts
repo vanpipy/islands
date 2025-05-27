@@ -1,8 +1,9 @@
+import { createResponse } from '@/utils/response';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
   health() {
-    return { code: 0, message: 'OK' };
+    return createResponse({ message: 'ok', data: null });
   }
 }
