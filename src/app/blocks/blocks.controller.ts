@@ -6,8 +6,9 @@ import { diskStorage } from 'multer';
 import { getPackageJson, getPkgDomain, saveAsBlock, untar } from './blocks.utils';
 import { BlocksService } from './blocks.service';
 import { createResponse, WebResponse } from '../../utils/response';
-import { BlocksQuery } from './blocks.dto';
+import { BlockData, BlocksQuery } from './blocks.dto';
 import { BlockEntity } from '../entities/block.entity';
+import { ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
 @Controller('/api/blocks')
 export class BlocksController {
@@ -17,6 +18,23 @@ export class BlocksController {
   ) {}
 
   @Get()
+  @ApiResponse({
+    schema: {
+      allOf: [
+        {
+          $ref: getSchemaPath(WebResponse),
+        },
+        {
+          properties: {
+            data: {
+              type: 'array',
+              items: { $ref: getSchemaPath(BlockData) },
+            },
+          },
+        },
+      ],
+    },
+  })
   async queryBlocks(@Query() blocksQuery: BlocksQuery): Promise<WebResponse<BlockEntity[]>> {
     const { name, version } = blocksQuery;
     const condition = { name, version };

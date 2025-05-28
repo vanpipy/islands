@@ -10,3 +10,29 @@ export class BlocksQuery {
   @IsString()
   version?: string;
 }
+
+export class BlockData {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  org: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  version: string;
+
+  @ApiProperty()
+  link: string;
+
+  @ApiProperty()
+  spec: string;
+
+  @ApiProperty()
+  requireRef: string;
+
+  @ApiProperty()
+  dependencies: string;
+}
