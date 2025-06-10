@@ -1,4 +1,3 @@
-import { createReadStream } from 'node:fs';
 import { Controller, Delete, Get, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -6,7 +5,6 @@ import { diskStorage } from 'multer';
 import { createResponse } from '@/utils/response';
 import { ApiWebArrayResponse, WebResponse } from '@/dtos/response.dto';
 import { BlockData, BlocksQuery, FileUploadDto } from '@/dtos/blocks.dto';
-import { getPackageJson, getPkgDomain, saveAsBlock, untar } from './blocks.utils';
 import { BlocksService } from './blocks.service';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
@@ -55,19 +53,6 @@ export class BlocksController {
 
   @OnEvent('file.parse')
   async onParseFile(payload: { file: Express.Multer.File }) {
-    const { file } = payload;
-    const streamFile = createReadStream(file.path);
-    const unzipFiles = await untar(streamFile);
-    const pkg = getPackageJson(unzipFiles);
-    const [org, name] = getPkgDomain(pkg);
-    const { version } = pkg;
-    const pkgName = org ? `${org}/${name}` : name;
-    const block = await this.blocksService.queryBlocks([{ org, name: pkgName, version }]);
-    if (block.length > 0) {
-      console.log(`The block ${pkgName} already exists`);
-      return;
-    }
-    const savedEntity = await saveAsBlock(unzipFiles);
-    await this.blocksService.saveBlock(savedEntity);
+    await this.blocksService.parseAndSaveBlock(payload.file);
   }
 }
