@@ -12,10 +12,8 @@ describe('AppController', () => {
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
-      const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('should return ok status', () => {
+    const appController = app.get(AppController);
+    expect(appController.health()).toEqual({ status: 0, message: 'ok', data: null });
   });
 });
